@@ -18,7 +18,7 @@
         <th scope="row" class="text-right">{{ index + 1 }}</th>
         <td><input v-model="play.name" placeholder="Name"></td>
         <td><input v-model.number="play.level" type="number" placeholder="0" min="1" max="20"></td>
-        <td><input v-model.number="play.score" type="number" placeholder="0" min="0" max="10000"></td>
+        <td><input v-model.number="play.score" type="number" placeholder="0" min="0"></td>
         <td>{{ grade(play) }}</td>
         <td>{{ Math.floor(calc(play)) }}</td>
         <td>
