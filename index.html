@@ -1,43 +1,48 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash"></script>
 <div id="root" class="container">
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <span class="navbar-brand mb-0 h1">Volforce Calculator</span>
+    <span class="navbar-brand mb-0 h1" @click="toggle">Volforce Calculator</span>
   </nav>
   <table class="table table-sm">
-    <thead>
+    <thead class="thead-light">
       <th/>
       <th>Name</th>
       <th>Level</th>
       <th>Score</th>
       <th>Grade</th>
-      <th colspan="2">{{ Math.floor(total) }} VF</th>
+      <th :colspan="edit ? 2 : 1">{{ Math.floor(total) }} VF</th>
     </thead>
     <tbody>
-      <tr v-for="(play, index) in plays" :key="play.id" @focusout="sort" v-bind:class="{ 'table-secondary': index >= 20 }">
-        <th scope="row" class="text-right">{{ index + 1 }}</th>
-        <td><input v-model="play.name" placeholder="Name"></td>
-        <td><input v-model.number="play.level" type="number" placeholder="0" min="1" max="20"></td>
-        <td><input v-model.number="play.score" type="number" placeholder="0" min="0"></td>
+      <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
+        <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
+        <td>
+          <input v-if="edit" v-model="play.name" placeholder="Name">
+          <span v-else>{{ play.name }}</span>
+        </td>
+        <td>
+          <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20">
+          <span v-else>{{ play.level }}</span>
+        </td>
+        <td>
+          <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0">
+          <span v-else>{{ expand(play.score).toFixed(0) }}</span>
+        </td>
         <td>{{ grade(play) }}</td>
         <td>{{ Math.floor(calc(play)) }}</td>
-        <td>
+        <td v-if="edit">
           <button @click="add(play)">+</button>
           <button @click="remove(play)">X</button>
         </td>
       </tr>
     </tbody>
   </table>
-  
-  <p><small>Enter any number of score digits. This is saved to local storage whenever a change is made and sorted whenever focus moves. <strong>+</strong> duplicates that play and <strong>X</strong> deletes it. Scores under 1 million won't work but they won't be in your top 20 anyway.</small></p>
+
+  <p v-if="edit"><small>Enter any number of score digits. Click the title to sort and toggle editing.</small></p>
 </div>
 <script>
-
-function sort(plays) {
-  return plays.sort((a, b) => calc(b) - calc(a))
-}
-
 function calc(play) {
   if (!play.score || !play.level) return 0
   var x = play.score
@@ -63,25 +68,28 @@ var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
 var vm = new Vue({
   el: "#root",
   data: {
-    plays: []
+    plays: [],
+    edit: true
   },
   computed: {
     total() {
       this.save()
-      return sort(this.plays.slice()).slice(0, 20).reduce((acc, play) => acc + calc(play), 0)
+      return _.sumBy(this.sortedPlays.slice(0, 20), calc)
+    },
+    sortedPlays() {
+      return _.orderBy(this.plays, [calc, 'level', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'asc'])
     }
   },
   methods: {
+    toggle() {
+      this.plays = this.sortedPlays
+      this.edit = !this.edit
+    },
     save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
     },
-    sort() {
-      sort(this.plays)
-      this.save()
-    },
     add(play) {
-      this.plays.push({id: nonce++, name: play.name, level: play.level, score: play.score})
-      this.sort()
+      this.plays.push({ name: play.name, level: play.level, score: play.score })
     },
     grade(play) {
       if (play.score == null) { return '?' }
@@ -103,6 +111,12 @@ var vm = new Vue({
       this.plays.splice(this.plays.indexOf(play), 1)
       if (this.plays.length === 0) this.add({})
       this.save()
+    },
+    expand(score) {
+      while (score * 10 < 10000000) {
+        score *= 10
+      }
+      return score
     }
   }
 })
