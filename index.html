@@ -75,7 +75,7 @@ var vm = new Vue({
   computed: {
     total() {
       this.save()
-      return _.sumBy(this.sortedPlays.slice(0, 20), calc)
+      return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
     },
     sortedPlays() {
       return _.orderBy(this.plays, [calc, 'level', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'asc'])
