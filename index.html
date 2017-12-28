@@ -8,12 +8,13 @@
   </nav>
   <table class="table table-sm">
     <thead class="thead-light">
-      <th/>
+      <th />
       <th>Name</th>
-      <th>Level</th>
-      <th>Score</th>
-      <th>Grade</th>
-      <th :colspan="edit ? 2 : 1">{{ Math.floor(total) }} VF</th>
+      <th class="text-center">Level</th>
+      <th class="text-center">Score</th>
+      <th class="text-center">Grade</th>
+      <th class="text-right">{{ Math.floor(total) }}</th>
+      <th class="text-left">VF</th>
     </thead>
     <tbody>
       <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
@@ -22,19 +23,19 @@
           <input v-if="edit" v-model="play.name" placeholder="Name">
           <span v-else>{{ play.name }}</span>
         </td>
-        <td>
+        <td class="text-center">
           <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20">
           <span v-else>{{ play.level }}</span>
         </td>
-        <td>
+        <td class="text-center">
           <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0">
           <span v-else>{{ expand(play.score) }}</span>
         </td>
         <td class="text-center">{{ grade(play) }}</td>
-        <td>{{ Math.floor(calc(play)) }}</td>
+        <td class="text-right">{{ Math.floor(calc(play)) }}</td>
         <td>
-          <button @click="add(play)">+</button>
-          <button @click="remove(play)">X</button>
+          <button v-if="edit" @click="add(play)">+</button>
+          <button v-if="edit" @click="remove(play)">X</button>
         </td>
       </tr>
     </tbody>
