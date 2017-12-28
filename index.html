@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<div id="root" class="container-fluid">
+  <h1>Volforce Calculator</h1>
+  <table class="table table-sm">
+    <thead>
+      <th/>
+      <th>Name</th>
+      <th>Level</th>
+      <th>Score</th>
+      <th>Grade</th>
+      <th>{{ Math.floor(total) }} VF</th>
+      <th/>
+    </thead>
+    <tbody>
+      <tr v-for="(play, index) in plays" :key="play.id" @focusout="sort" v-bind:class="{ 'table-secondary': index >= 20 }">
+        <th scope="row" class="text-right">{{ index + 1 }}</th>
+        <td><input v-model="play.name" placeholder="REVOLVER EXH"></td>
+        <td><input v-model.number="play.level" type="number" placeholder="19" min="1" max="20"></td>
+        <td><input v-model.number="play.score" type="number" placeholder="9899" min="0" max="10000"></td>
+        <td>{{ grade(play) }}</td>
+        <td>{{ Math.floor(calc(play)) }}</td>
+        <td>
+          <button @click="add(play)">+</button>
+          <button @click="remove(play)">X</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <p><small>This is saved to local storage whenever a change is made and sorted whenever focus moves. <strong>+</strong> duplicates that play and <strong>X</strong> deletes it.</small></p>
+</div>
+<script>
+
+function sort(plays) {
+  return plays.sort((a, b) => calc(b) - calc(a))
+}
+
+function calc(play) {
+  if (!play.score || !play.level) return 0
+  var x = play.score / 1e4
+  var n
+       if (x >= .99) n = 1
+  else if (x >= .98) n = 0.99
+  else if (x >= .97) n = 0.98
+  else if (x >= .96) n = 0.97
+  else if (x >= .93) n = 0.96
+  else if (x >= .90) n = 0.95
+  else if (x >= .87) n = 0.94
+  else if (x >= .75) n = 0.93
+  else if (x >= .65) n = 0.92
+  else               n = 0.91
+  return 25 * n * (play.level + 1) * x
+}
+
+var STORAGE_KEY = 'data'
+var nonce = 0
+
+var vm = new Vue({
+  el: "#root",
+  data: {
+    plays: sort(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]'))
+  },
+  computed: {
+    total() {
+      this.save()
+      return sort(this.plays.slice()).slice(0, 20).reduce((acc, play) => acc + calc(play), 0)
+    }
+  },
+  methods: {
+    save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
+    },
+    sort() {
+      sort(this.plays)
+      this.save()
+    },
+    add(play) {
+      this.plays.push({id: nonce++, name: play.name, level: play.level, score: play.score})
+      this.sort()
+    },
+    grade(play) {
+      if (play.score == null) { return '???' }
+      var x = play.score / 1e4
+      if (x >= .99) return 'S'
+      if (x >= .98) return 'AAA+'
+      if (x >= .97) return 'AAA'
+      if (x >= .95) return 'AA+'
+      if (x >= .93) return 'AA'
+      if (x >= .90) return 'A+'
+      if (x >= .87) return 'A'
+      if (x >= .80) return 'B'
+      if (x >= .70) return 'C'
+                    return 'D'
+    },
+    calc: calc,
+    remove(play) {
+      this.plays.splice(this.plays.indexOf(play), 1)
+      if (this.plays.length === 0) this.plays.push({})
+      this.save()
+    }
+  }
+})
+
+</script>
