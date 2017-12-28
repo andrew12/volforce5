@@ -39,7 +39,8 @@ function sort(plays) {
 
 function calc(play) {
   if (!play.score || !play.level) return 0
-  var x = play.score / 1e4
+  var x = play.score
+  while (x > 1) x /= 10
   var n
        if (x >= .99) n = 1
   else if (x >= .98) n = 0.99
@@ -82,8 +83,9 @@ var vm = new Vue({
       this.sort()
     },
     grade(play) {
-      if (play.score == null) { return '???' }
-      var x = play.score / 1e4
+      if (play.score == null) { return '?' }
+      var x = play.score
+      while (x > 1) x /= 10
       if (x >= .99) return 'S'
       if (x >= .98) return 'AAA+'
       if (x >= .97) return 'AAA'
