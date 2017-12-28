@@ -2,9 +2,10 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash"></script>
-<div id="root" class="container">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+<div id="root" class="container-fluid">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
     <span class="navbar-brand mb-0 h1" @click="toggle">Volforce Calculator</span>
+    <span class="navbar-brand mb-0 h1" @click="toggle">{{ Math.floor(total) }}</span>
   </nav>
   <table class="table table-sm">
     <thead class="thead-light">
@@ -13,8 +14,8 @@
       <th class="text-center">Level</th>
       <th class="text-center">Score</th>
       <th class="text-center">Grade</th>
-      <th class="text-right">{{ Math.floor(total) }}</th>
-      <th class="text-left">VF</th>
+      <th class="text-center">VF</th>
+      <th v-if="edit" />
     </thead>
     <tbody>
       <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
@@ -32,10 +33,12 @@
           <span v-else>{{ expand(play.score) }}</span>
         </td>
         <td class="text-center">{{ grade(play) }}</td>
-        <td class="text-right">{{ Math.floor(calc(play)) }}</td>
-        <td>
-          <button v-if="edit" @click="add(play)">+</button>
-          <button v-if="edit" @click="remove(play)">X</button>
+        <td class="text-center">
+          {{ Math.floor(calc(play)) }}
+        </td>
+        <td v-if="edit">
+          <button @click="add(play)">+</button>
+          <button @click="remove(play)">X</button>
         </td>
       </tr>
     </tbody>
@@ -75,7 +78,7 @@ var vm = new Vue({
   computed: {
     total() {
       this.save()
-      return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
+      return Math.floor(_.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p))))
     },
     sortedPlays() {
       return _.orderBy(this.plays, [calc, 'level', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'asc'])
