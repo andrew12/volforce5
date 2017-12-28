@@ -28,11 +28,11 @@
         </td>
         <td>
           <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0">
-          <span v-else>{{ expand(play.score).toFixed(0) }}</span>
+          <span v-else>{{ expand(play.score) }}</span>
         </td>
-        <td>{{ grade(play) }}</td>
+        <td class="text-center">{{ grade(play) }}</td>
         <td>{{ Math.floor(calc(play)) }}</td>
-        <td v-if="edit">
+        <td>
           <button @click="add(play)">+</button>
           <button @click="remove(play)">X</button>
         </td>
@@ -117,7 +117,7 @@ var vm = new Vue({
         while (score * 10 < 10000000) {
           score *= 10
         }
-        return score
+        return Math.round(score).toLocaleString()
       }
     }
   }
@@ -126,5 +126,7 @@ var vm = new Vue({
 for (var play of storage) {
   vm.add(play)
 }
+vm.plays = _.shuffle(vm.plays)
+// vm.plays = vm.sortedPlays
 
 </script>
