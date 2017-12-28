@@ -98,7 +98,7 @@ var vm = new Vue({
     calc: calc,
     remove(play) {
       this.plays.splice(this.plays.indexOf(play), 1)
-      if (this.plays.length === 0) this.plays.push({})
+      if (this.plays.length === 0) this.add({})
       this.save()
     }
   }
