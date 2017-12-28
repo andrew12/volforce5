@@ -56,11 +56,12 @@ function calc(play) {
 
 var STORAGE_KEY = 'data'
 var nonce = 0
+var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
 
 var vm = new Vue({
   el: "#root",
   data: {
-    plays: sort(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]'))
+    plays: []
   },
   computed: {
     total() {
@@ -102,5 +103,9 @@ var vm = new Vue({
     }
   }
 })
+
+for (var play of storage) {
+  vm.add(play)
+}
 
 </script>
