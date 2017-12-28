@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash"></script>
+<div id="root" class="container">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <span class="navbar-brand mb-0 h1" @click="toggle">Volforce Calculator</span>
+  </nav>
+  <table class="table table-sm">
+    <thead class="thead-light">
+      <th />
+      <th>Name</th>
+      <th class="text-center">Level</th>
+      <th class="text-center">Score</th>
+      <th class="text-center">Grade</th>
+      <th class="text-right">{{ Math.floor(total) }}</th>
+      <th class="text-left">VF</th>
+    </thead>
+    <tbody>
+      <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
+        <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
+        <td>
+          <input v-if="edit" v-model="play.name" placeholder="Name">
+          <span v-else>{{ play.name }}</span>
+        </td>
+        <td class="text-center">
+          <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20">
+          <span v-else>{{ play.level }}</span>
+        </td>
+        <td class="text-center">
+          <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0">
+          <span v-else>{{ expand(play.score) }}</span>
+        </td>
+        <td class="text-center">{{ grade(play) }}</td>
+        <td class="text-right">{{ Math.floor(calc(play)) }}</td>
+        <td>
+          <button v-if="edit" @click="add(play)">+</button>
+          <button v-if="edit" @click="remove(play)">X</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p v-if="edit"><small>Enter any number of score digits. Click the title to sort and toggle editing.</small></p>
+</div>
+<script>
+function calc(play) {
+  if (!play.score || !play.level) return 0
+  var x = play.score
+  while (x > 1) x /= 10
+  var n
+       if (x >= .99) n = 1
+  else if (x >= .98) n = 0.99
+  else if (x >= .97) n = 0.98
+  else if (x >= .95) n = 0.97
+  else if (x >= .93) n = 0.96
+  else if (x >= .90) n = 0.95
+  else if (x >= .87) n = 0.94
+  else if (x >= .75) n = 0.93
+  else if (x >= .65) n = 0.92
+  else               n = 0.91
+  return 25 * n * (play.level + 1) * x
+}
+
+var STORAGE_KEY = 'data'
+var nonce = 0
+var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
+
+var vm = new Vue({
+  el: "#root",
+  data: {
+    plays: [],
+    edit: true
+  },
+  computed: {
+    total() {
+      this.save()
+      return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
+    },
+    sortedPlays() {
+      return _.orderBy(this.plays, [calc, 'level', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'asc'])
+    }
+  },
+  methods: {
+    toggle() {
+      this.plays = this.sortedPlays
+      this.edit = !this.edit
+    },
+    save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
+    },
+    add(play) {
+      this.plays.push({ name: play.name, level: play.level, score: play.score })
+    },
+    grade(play) {
+      if (play.score == null) { return '?' }
+      var x = play.score
+      while (x > 1) x /= 10
+      if (x >= .99) return 'S'
+      if (x >= .98) return 'AAA+'
+      if (x >= .97) return 'AAA'
+      if (x >= .95) return 'AA+'
+      if (x >= .93) return 'AA'
+      if (x >= .90) return 'A+'
+      if (x >= .87) return 'A'
+      if (x >= .80) return 'B'
+      if (x >= .70) return 'C'
+                    return 'D'
+    },
+    calc: calc,
+    remove(play) {
+      this.plays.splice(this.plays.indexOf(play), 1)
+      if (this.plays.length === 0) this.add({})
+      this.save()
+    },
+    expand(score) {
+      if (score > 0) {
+        while (score * 10 < 10000000) {
+          score *= 10
+        }
+        return Math.round(score).toLocaleString()
+      }
+    }
+  }
+})
+
+for (var play of storage) {
+  vm.add(play)
+}
+vm.plays = _.shuffle(vm.plays)
+vm.plays = vm.sortedPlays
+
+</script>
