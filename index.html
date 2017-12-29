@@ -3,43 +3,40 @@
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash"></script>
 <div id="root" class="container">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="toggle">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="edit = !edit">
     <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
-    <small v-if="edit">Click to sort and toggle editing</small>
     <a class="navbar-brand mb-0 h1" href="#">{{ Math.floor(total) }}</a>
   </nav>
   <table class="table table-sm">
     <thead class="thead-light">
-      <th />
+      <th class="text-right"><input type="checkbox" v-model="edit"> <span v-if="edit" @click="edit = !edit">Edit</span></th>
       <th>Name</th>
       <th class="text-center">Level</th>
       <th class="text-center">Score</th>
       <th class="text-center">Grade</th>
       <th class="text-center">VF</th>
-      <th v-if="edit" />
+      <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm">Sort</button></th>
     </thead>
     <tbody>
       <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
         <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
         <td>
-          <input v-if="edit" v-model="play.name" placeholder="Name">
+          <input v-if="edit" v-model="play.name" placeholder="Name" class="form-control form-control-sm">
           <span v-else>{{ play.name }}</span>
         </td>
         <td class="text-center">
-          <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20">
+          <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20" class="form-control form-control-sm">
           <span v-else>{{ play.level }}</span>
         </td>
         <td class="text-center">
-          <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0">
+          <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0" class="form-control form-control-sm">
           <span v-else>{{ expand(play.score) }}</span>
         </td>
         <td class="text-center">{{ grade(play) }}</td>
-        <td class="text-center">
-          {{ Math.floor(calc(play)) }}
-        </td>
-        <td v-if="edit">
-          <button @click="add(play)">+</button>
-          <button @click="remove(play)">X</button>
+        <td class="text-center">{{ calc(play) }}</td>
+        <td v-if="edit" class="btn-group">
+          <button @click="add(play)" class="btn btn-sm">+</button>
+          <button @click="remove(play)" class="btn btn-sm">X</button>
         </td>
       </tr>
     </tbody>
@@ -76,18 +73,13 @@ var vm = new Vue({
   },
   computed: {
     total() {
-      this.save()
-      return Math.floor(_.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p))))
+      return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
     },
     sortedPlays() {
-      return _.orderBy(this.plays, [calc, 'level', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'asc'])
+      return _.orderBy(this.plays, [calc, 'level', 'score', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'desc', 'asc'])
     }
   },
   methods: {
-    toggle() {
-      this.sort()
-      this.edit = !this.edit
-    },
     sort() {
       this.plays = this.sortedPlays
     },
@@ -112,7 +104,9 @@ var vm = new Vue({
       if (x >= .70) return 'C'
                     return 'D'
     },
-    calc: calc,
+    calc(p) {
+      return Math.floor(calc(p))
+    },
     remove(play) {
       this.plays.splice(this.plays.indexOf(play), 1)
       if (this.plays.length === 0) this.add({})
@@ -126,13 +120,19 @@ var vm = new Vue({
         return Math.round(score).toLocaleString()
       }
     }
+  },
+  watch: {
+    edit: function () { this.sort() }
   }
 })
+
+vm.$watch('plays', _.debounce(function () { vm.save() }, 500), { deep: true })
 
 for (var play of storage) {
   vm.add(play)
 }
 vm.plays = _.shuffle(vm.plays)
 vm.plays = vm.sortedPlays
+if (!vm.plays.length) { vm.add({}) } 
 
 </script>
