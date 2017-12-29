@@ -15,7 +15,7 @@
       <th class="text-center">Score</th>
       <th class="text-center">Grade</th>
       <th class="text-center">VF</th>
-      <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm">Sort</button></th>
+      <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm btn-outline-info">Sort</button></th>
     </thead>
     <tbody>
       <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
@@ -34,9 +34,11 @@
         </td>
         <td class="text-center">{{ grade(play) }}</td>
         <td class="text-center">{{ calc(play) }}</td>
-        <td v-if="edit" class="btn-group">
-          <button @click="add(play)" class="btn btn-sm">+</button>
-          <button @click="remove(play)" class="btn btn-sm">X</button>
+        <td v-if="edit" class="text-center">
+          <div class="btn-group">
+            <button @click="add(play)" class="btn btn-sm btn-outline-success">+</button>
+            <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
+          </div>
         </td>
       </tr>
     </tbody>
