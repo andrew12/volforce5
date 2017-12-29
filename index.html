@@ -3,9 +3,10 @@
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script src="https://cdn.jsdelivr.net/npm/lodash"></script>
 <div id="root" class="container">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
-    <a class="navbar-brand mb-0 h1" @click="toggle" href="#">Volforce Calculator</a>
-    <a class="navbar-brand mb-0 h1" @click="toggle" href="#">{{ Math.floor(total) }}</a>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="toggle">
+    <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
+    <small v-if="edit">Click to sort and toggle editing</small>
+    <a class="navbar-brand mb-0 h1" href="#">{{ Math.floor(total) }}</a>
   </nav>
   <table class="table table-sm">
     <thead class="thead-light">
@@ -43,8 +44,6 @@
       </tr>
     </tbody>
   </table>
-
-  <p v-if="edit"><small>Enter any number of score digits. Click the title to sort and toggle editing.</small></p>
 </div>
 <script>
 function calc(play) {
@@ -86,8 +85,11 @@ var vm = new Vue({
   },
   methods: {
     toggle() {
-      this.plays = this.sortedPlays
+      this.sort()
       this.edit = !this.edit
+    },
+    sort() {
+      this.plays = this.sortedPlays
     },
     save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
