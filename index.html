@@ -1,140 +1,153 @@
-<!DOCTYPE html>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<script src="https://cdn.jsdelivr.net/npm/lodash"></script>
-<div id="root" class="container">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="edit = !edit">
-    <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
-    <a class="navbar-brand mb-0 h1" href="#">{{ Math.floor(total) }}</a>
-  </nav>
-  <table class="table table-sm">
-    <thead class="thead-light">
-      <th class="text-right"><input type="checkbox" v-model="edit"> <span v-if="edit" @click="edit = !edit">Edit</span></th>
-      <th>Name</th>
-      <th class="text-center">Level</th>
-      <th class="text-center">Score</th>
-      <th class="text-center">Grade</th>
-      <th class="text-center">VF</th>
-      <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm btn-outline-info">Sort</button></th>
-    </thead>
-    <tbody>
-      <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
-        <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
-        <td>
-          <input v-if="edit" v-model="play.name" placeholder="Name" class="form-control form-control-sm">
-          <span v-else>{{ play.name }}</span>
-        </td>
-        <td class="text-center">
-          <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20" class="form-control form-control-sm">
-          <span v-else>{{ play.level }}</span>
-        </td>
-        <td class="text-center">
-          <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0" class="form-control form-control-sm">
-          <span v-else>{{ expand(play.score) }}</span>
-        </td>
-        <td class="text-center">{{ grade(play) }}</td>
-        <td class="text-center">{{ calc(play) }}</td>
-        <td v-if="edit" class="text-center">
-          <div class="btn-group">
-            <button @click="add(play)" class="btn btn-sm btn-outline-success">+</button>
-            <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<script>
-function calc(play) {
-  if (!play.score || !play.level) return 0
-  var x = play.score
-  while (x > 1) x /= 10
-  var n
-       if (x >= .99) n = 1
-  else if (x >= .98) n = 0.99
-  else if (x >= .97) n = 0.98
-  else if (x >= .95) n = 0.97
-  else if (x >= .93) n = 0.96
-  else if (x >= .90) n = 0.95
-  else if (x >= .87) n = 0.94
-  else if (x >= .75) n = 0.93
-  else if (x >= .65) n = 0.92
-  else               n = 0.91
-  return 25 * n * (play.level + 1) * x
-}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-var STORAGE_KEY = 'data'
-var nonce = 0
-var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
 
-var vm = new Vue({
-  el: "#root",
-  data: {
-    plays: [],
-    edit: true
-  },
-  computed: {
-    total() {
-      return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
-    },
-    sortedPlays() {
-      return _.orderBy(this.plays, [calc, 'level', 'score', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'desc', 'asc'])
-    }
-  },
-  methods: {
-    sort() {
-      this.plays = this.sortedPlays
-    },
-    save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
-    },
-    add(play) {
-      this.plays.push({ name: play.name, level: play.level, score: play.score })
-    },
-    grade(play) {
-      if (play.score == null) { return '?' }
+    <title>Volforce Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash"></script>
+  </head>
+  <body>
+    <div id="root" class="container">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="edit = !edit">
+        <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
+        <a class="navbar-brand mb-0 h1" href="#">{{ Math.floor(total) }}</a>
+      </nav>
+      <table class="table table-sm">
+        <thead class="thead-light">
+          <th class="text-right"><input type="checkbox" v-model="edit"> <span v-if="edit" @click="edit = !edit">Edit</span></th>
+          <th>Name</th>
+          <th class="text-center">Level</th>
+          <th class="text-center">Score</th>
+          <th class="text-center">Grade</th>
+          <th class="text-center">VF</th>
+          <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm btn-outline-info">Sort</button></th>
+        </thead>
+        <tbody>
+          <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
+            <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
+            <td>
+              <input v-if="edit" v-model="play.name" placeholder="Name" class="form-control form-control-sm">
+              <span v-else>{{ play.name }}</span>
+            </td>
+            <td class="text-center">
+              <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20" class="form-control form-control-sm">
+              <span v-else>{{ play.level }}</span>
+            </td>
+            <td class="text-center">
+              <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0" class="form-control form-control-sm">
+              <span v-else>{{ expand(play.score) }}</span>
+            </td>
+            <td class="text-center">{{ grade(play) }}</td>
+            <td class="text-center">{{ calc(play) }}</td>
+            <td v-if="edit" class="text-center">
+              <div class="btn-group">
+                <button @click="add(play)" class="btn btn-sm btn-outline-success">+</button>
+                <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <script>
+    function calc(play) {
+      if (!play.score || !play.level) return 0
       var x = play.score
       while (x > 1) x /= 10
-      if (x >= .99) return 'S'
-      if (x >= .98) return 'AAA+'
-      if (x >= .97) return 'AAA'
-      if (x >= .95) return 'AA+'
-      if (x >= .93) return 'AA'
-      if (x >= .90) return 'A+'
-      if (x >= .87) return 'A'
-      if (x >= .80) return 'B'
-      if (x >= .70) return 'C'
-                    return 'D'
-    },
-    calc(p) {
-      return Math.floor(calc(p))
-    },
-    remove(play) {
-      this.plays.splice(this.plays.indexOf(play), 1)
-      if (this.plays.length === 0) this.add({})
-      this.save()
-    },
-    expand(score) {
-      if (score > 0) {
-        while (score * 10 < 10000000) {
-          score *= 10
-        }
-        return Math.round(score).toLocaleString()
-      }
+      var n
+           if (x >= .99) n = 1
+      else if (x >= .98) n = 0.99
+      else if (x >= .97) n = 0.98
+      else if (x >= .95) n = 0.97
+      else if (x >= .93) n = 0.96
+      else if (x >= .90) n = 0.95
+      else if (x >= .87) n = 0.94
+      else if (x >= .75) n = 0.93
+      else if (x >= .65) n = 0.92
+      else               n = 0.91
+      return 25 * n * (play.level + 1) * x
     }
-  },
-  watch: {
-    edit: function () { this.sort() }
-  }
-})
 
-vm.$watch('plays', _.debounce(function () { vm.save() }, 500), { deep: true })
+    var STORAGE_KEY = 'data'
+    var nonce = 0
+    var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
 
-for (var play of storage) {
-  vm.add(play)
-}
-vm.plays = _.shuffle(vm.plays)
-vm.plays = vm.sortedPlays
-if (!vm.plays.length) { vm.add({}) } 
+    var vm = new Vue({
+      el: "#root",
+      data: {
+        plays: [],
+        edit: true
+      },
+      computed: {
+        total() {
+          return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
+        },
+        sortedPlays() {
+          return _.orderBy(this.plays, [calc, 'level', 'score', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'desc', 'asc'])
+        }
+      },
+      methods: {
+        sort() {
+          this.plays = this.sortedPlays
+        },
+        save() {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
+        },
+        add(play) {
+          this.plays.push({ name: play.name, level: play.level, score: play.score })
+        },
+        grade(play) {
+          if (play.score == null) { return '?' }
+          var x = play.score
+          while (x > 1) x /= 10
+          if (x >= .99) return 'S'
+          if (x >= .98) return 'AAA+'
+          if (x >= .97) return 'AAA'
+          if (x >= .95) return 'AA+'
+          if (x >= .93) return 'AA'
+          if (x >= .90) return 'A+'
+          if (x >= .87) return 'A'
+          if (x >= .80) return 'B'
+          if (x >= .70) return 'C'
+                        return 'D'
+        },
+        calc(p) {
+          return Math.floor(calc(p))
+        },
+        remove(play) {
+          this.plays.splice(this.plays.indexOf(play), 1)
+          if (this.plays.length === 0) this.add({})
+          this.save()
+        },
+        expand(score) {
+          if (score > 0) {
+            while (score * 10 < 10000000) {
+              score *= 10
+            }
+            return Math.round(score).toLocaleString()
+          }
+        }
+      },
+      watch: {
+        edit: function () { this.sort() }
+      }
+    })
 
-</script>
+    vm.$watch('plays', _.debounce(function () { vm.save() }, 500), { deep: true })
+
+    for (var play of storage) {
+      vm.add(play)
+    }
+    vm.plays = _.shuffle(vm.plays)
+    vm.plays = vm.sortedPlays
+    if (!vm.plays.length) { vm.add({}) } 
+
+    </script>
+  </body>
+</html>
