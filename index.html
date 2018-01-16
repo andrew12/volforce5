@@ -47,7 +47,7 @@
             <td class="text-center">{{ calc(play) }}</td>
             <td v-if="edit" class="text-center">
               <div class="btn-group">
-                <button @click="add(play)" class="btn btn-sm btn-outline-success">+</button>
+                <button @click="add({ level: play.level })" class="btn btn-sm btn-outline-success">+</button>
                 <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
               </div>
             </td>
