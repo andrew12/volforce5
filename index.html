@@ -126,7 +126,7 @@
         },
         expand(score) {
           if (score > 0) {
-            while (score * 10 < 10000000) {
+            while (score * 10 <= 10000000) {
               score *= 10
             }
             return Math.round(score).toLocaleString()
