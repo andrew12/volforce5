@@ -88,7 +88,18 @@
           return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
         },
         sortedPlays() {
-          return _.orderBy(this.plays, [calc, 'level', 'score', (x) => x.name ? x.name.toLowerCase() : ''], ['desc', 'desc', 'desc', 'asc'])
+          return _.orderBy(this.plays, [calc, 'level',
+                                        function (p) {
+                                          var score = p.score
+                                          if (score > 0) {
+                                            while (score * 10 <= 10000000) {
+                                              score *= 10
+                                            }
+                                          }
+                                          return score
+                                        },
+                                        (x) => x.name ? x.name.toLowerCase() : ''],
+                           ['desc', 'desc', 'desc', 'asc'])
         }
       },
       methods: {
