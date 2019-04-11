@@ -16,7 +16,7 @@
     <div id="root" class="container">
       <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="edit = !edit">
         <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
-        <a class="navbar-brand mb-0 h1" href="#">{{ Math.floor(total) }}</a>
+        <a class="navbar-brand mb-0 h1" href="#">{{ total.toFixed(2) }}</a>
       </nav>
       <table class="table table-sm">
         <thead class="thead-light">
@@ -24,12 +24,13 @@
           <th>Name</th>
           <th class="text-center">Level</th>
           <th class="text-center">Score</th>
+          <th class="text-center">Clear</th>
           <th class="text-center">Grade</th>
           <th class="text-center">VF</th>
           <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm btn-outline-info">Sort</button></th>
         </thead>
         <tbody>
-          <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 20 }">
+          <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 50 }">
             <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
             <td>
               <input v-if="edit" v-model="play.name" placeholder="Name" class="form-control form-control-sm">
@@ -43,11 +44,21 @@
               <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0" class="form-control form-control-sm">
               <span v-else>{{ expand(play.score) }}</span>
             </td>
+            <td class="text-center">
+              <select v-if="edit" v-model.number="play.clear" class="form-control form-control-sm">
+                <option>PUC</option>
+                <option>UC</option>
+                <option>EXC</option>
+                <option>CLEARED</option>
+                <option>PLAYED</option>
+              </select>
+              <span v-else>{{ play.clear }}</span>
+            </td>
             <td class="text-center">{{ grade(play) }}</td>
-            <td class="text-center">{{ calc(play) }}</td>
+            <td class="text-center">{{ (calc(play) / 100).toFixed(2) }}</td>
             <td v-if="edit" class="text-center">
               <div class="btn-group">
-                <button @click="add({ level: play.level })" class="btn btn-sm btn-outline-success">+</button>
+                <button @click="add({ level: play.level, clear: play.clear })" class="btn btn-sm btn-outline-success">+</button>
                 <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
               </div>
             </td>
@@ -61,18 +72,25 @@
       var x = play.score
       while (x > 1) x /= 10
       x = Math.floor(x * 10000) / 10000
-      var n
-           if (x >= .99) n = 1
-      else if (x >= .98) n = 0.99
-      else if (x >= .97) n = 0.98
-      else if (x >= .95) n = 0.97
-      else if (x >= .93) n = 0.96
-      else if (x >= .90) n = 0.95
-      else if (x >= .87) n = 0.94
-      else if (x >= .75) n = 0.93
-      else if (x >= .65) n = 0.92
-      else               n = 0.91
-      return 25 * n * (play.level + 1) * x
+      var clear_coef = {
+        'PUC': 1.10,
+        'UC': 1.05,
+        'EXC': 1.02,
+        'CLEARED': 1.00,
+        'PLAYED': 0.5,
+      }[play.clear]
+      var grade_coef
+           if (x >= .99) grade_coef = 1.05
+      else if (x >= .98) grade_coef = 1.02
+      else if (x >= .97) grade_coef = 1.00
+      else if (x >= .95) grade_coef = 0.97
+      else if (x >= .93) grade_coef = 0.94
+      else if (x >= .90) grade_coef = 0.91 // ?
+      else if (x >= .87) grade_coef = 0.88 // ?
+      else if (x >= .75) grade_coef = 0.85 // ?
+      else if (x >= .65) grade_coef = 0.82 // ?
+      else               grade_coef = 0.80 // ?
+      return (play.level * 2) * x * grade_coef * clear_coef
     }
 
     var STORAGE_KEY = 'data'
@@ -86,7 +104,7 @@
       },
       computed: {
         total() {
-          return _.sumBy(this.sortedPlays.slice(0, 20), (p) => Math.floor(calc(p)))
+          return _.sumBy(this.sortedPlays.slice(0, 50), (p) => Math.floor(calc(p))) / 100
         },
         sortedPlays() {
           return _.orderBy(this.plays, [calc, 'level',
@@ -111,7 +129,7 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
         },
         add(play) {
-          this.plays.push({ name: play.name, level: play.level, score: play.score })
+          this.plays.push({ name: play.name, level: play.level, score: play.score, clear: play.clear })
         },
         grade(play) {
           if (play.score == null) { return '?' }
