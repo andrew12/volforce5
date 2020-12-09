@@ -1,12 +1,20 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css"
+      integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy"
+      crossorigin="anonymous"
+    />
 
     <title>Volforce Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
@@ -14,38 +22,77 @@
   </head>
   <body>
     <div id="root" class="container">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between" @click="edit = !edit">
+      <nav
+        class="navbar navbar-expand-lg navbar-light bg-light justify-content-between"
+        @click="edit = !edit"
+      >
         <a class="navbar-brand mb-0 h1" href="#">Volforce Calculator</a>
         <a class="navbar-brand mb-0 h1" href="#">{{ total.toFixed(2) }}</a>
       </nav>
       <table class="table table-sm">
         <thead class="thead-light">
-          <th class="text-right"><input type="checkbox" v-model="edit"> <span v-if="edit" @click="edit = !edit">Edit</span></th>
+          <th class="text-right">
+            <input type="checkbox" v-model="edit" />
+            <span v-if="edit" @click="edit = !edit">Edit</span>
+          </th>
           <th>Name</th>
           <th class="text-center">Level</th>
           <th class="text-center">Score</th>
           <th class="text-center">Clear</th>
           <th class="text-center">Grade</th>
           <th class="text-center">VF</th>
-          <th v-if="edit" class="text-center"><button @click="sort" class="btn btn-sm btn-outline-info">Sort</button></th>
+          <th v-if="edit" class="text-center">
+            <button @click="sort" class="btn btn-sm btn-outline-info">
+              Sort
+            </button>
+          </th>
         </thead>
         <tbody>
-          <tr v-for="play in plays" v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 50 }">
-            <th scope="row" class="text-right">{{ sortedPlays.indexOf(play) + 1 }}</th>
+          <tr
+            v-for="play in plays"
+            v-bind:class="{ 'table-secondary': sortedPlays.indexOf(play) >= 50 }"
+          >
+            <th scope="row" class="text-right">
+              {{ sortedPlays.indexOf(play) + 1 }}
+            </th>
             <td>
-              <input v-if="edit" v-model="play.name" placeholder="Name" class="form-control form-control-sm">
+              <input
+                v-if="edit"
+                v-model="play.name"
+                placeholder="Name"
+                class="form-control form-control-sm"
+              />
               <span v-else>{{ play.name }}</span>
             </td>
             <td class="text-center">
-              <input v-if="edit" v-model.number="play.level" type="number" placeholder="0" min="1" max="20" class="form-control form-control-sm">
+              <input
+                v-if="edit"
+                v-model.number="play.level"
+                type="number"
+                placeholder="0"
+                min="1"
+                max="20"
+                class="form-control form-control-sm"
+              />
               <span v-else>{{ play.level }}</span>
             </td>
             <td class="text-center">
-              <input v-if="edit" v-model.number="play.score" type="number" placeholder="0" min="0" class="form-control form-control-sm">
+              <input
+                v-if="edit"
+                v-model.number="play.score"
+                type="number"
+                placeholder="0"
+                min="0"
+                class="form-control form-control-sm"
+              />
               <span v-else>{{ expand(play.score) }}</span>
             </td>
             <td class="text-center">
-              <select v-if="edit" v-model.number="play.clear" class="form-control form-control-sm">
+              <select
+                v-if="edit"
+                v-model.number="play.clear"
+                class="form-control form-control-sm"
+              >
                 <option>PUC</option>
                 <option>UC</option>
                 <option>EXC</option>
@@ -58,8 +105,18 @@
             <td class="text-center">{{ (calc(play) / 100).toFixed(2) }}</td>
             <td v-if="edit" class="text-center">
               <div class="btn-group">
-                <button @click="add({ level: play.level, clear: play.clear })" class="btn btn-sm btn-outline-success">+</button>
-                <button @click="remove(play)" class="btn btn-sm btn-outline-danger">X</button>
+                <button
+                  @click="add({ level: play.level, clear: play.clear })"
+                  class="btn btn-sm btn-outline-success"
+                >
+                  +
+                </button>
+                <button
+                  @click="remove(play)"
+                  class="btn btn-sm btn-outline-danger"
+                >
+                  X
+                </button>
               </div>
             </td>
           </tr>
@@ -67,116 +124,146 @@
       </table>
     </div>
     <script>
-    function calc(play) {
-      if (!play.score || !play.level) return 0
-      var x = play.score
-      while (x > 1) x /= 10
-      x = Math.floor(x * 10000) / 10000
-      var clear_coef = {
-        'PUC': 1.10,
-        'UC': 1.05,
-        'EXC': 1.02,
-        'CLEARED': 1.00,
-        'PLAYED': 0.5,
-      }[play.clear]
-      var grade_coef
-           if (x >= .99) grade_coef = 1.05
-      else if (x >= .98) grade_coef = 1.02
-      else if (x >= .97) grade_coef = 1.00
-      else if (x >= .95) grade_coef = 0.97
-      else if (x >= .93) grade_coef = 0.94
-      else if (x >= .90) grade_coef = 0.91 // ?
-      else if (x >= .87) grade_coef = 0.88 // ?
-      else if (x >= .75) grade_coef = 0.85 // ?
-      else if (x >= .65) grade_coef = 0.82 // ?
-      else               grade_coef = 0.80 // ?
-      return (play.level * 2) * x * grade_coef * clear_coef
-    }
-
-    var STORAGE_KEY = 'data5'
-    var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[{}]')
-
-    var vm = new Vue({
-      el: "#root",
-      data: {
-        plays: [],
-        edit: true
-      },
-      computed: {
-        total() {
-          return _.sumBy(this.sortedPlays.slice(0, 50), (p) => Math.floor(calc(p))) / 100
-        },
-        sortedPlays() {
-          return _.orderBy(this.plays, [calc, 'level',
-                                        function (p) {
-                                          var score = p.score
-                                          if (score > 0) {
-                                            while (score * 10 <= 10000000) {
-                                              score *= 10
-                                            }
-                                          }
-                                          return score
-                                        },
-                                        (x) => x.name ? x.name.toLowerCase() : ''],
-                           ['desc', 'desc', 'desc', 'asc'])
-        }
-      },
-      methods: {
-        sort() {
-          this.plays = this.sortedPlays
-        },
-        save() {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays))
-        },
-        add(play) {
-          this.plays.push({ name: play.name, level: play.level, score: play.score, clear: play.clear })
-        },
-        grade(play) {
-          if (play.score == null) { return '?' }
-          var x = play.score
-          while (x > 1) x /= 10
-          if (x >= .99) return 'S'
-          if (x >= .98) return 'AAA+'
-          if (x >= .97) return 'AAA'
-          if (x >= .95) return 'AA+'
-          if (x >= .93) return 'AA'
-          if (x >= .90) return 'A+'
-          if (x >= .87) return 'A'
-          if (x >= .80) return 'B'
-          if (x >= .70) return 'C'
-                        return 'D'
-        },
-        calc(p) {
-          return Math.floor(calc(p))
-        },
-        remove(play) {
-          this.plays.splice(this.plays.indexOf(play), 1)
-          if (this.plays.length === 0) this.add({})
-          this.save()
-        },
-        expand(score) {
-          if (score > 0) {
-            while (score * 10 <= 10000000) {
-              score *= 10
-            }
-            return Math.round(score).toLocaleString()
-          }
-        }
-      },
-      watch: {
-        edit: function () { this.sort() }
+      function calc(play) {
+        if (!play.score || !play.level) return 0;
+        var x = play.score;
+        while (x > 1) x /= 10;
+        x = Math.floor(x * 10000) / 10000;
+        var clear_coef = {
+          PUC: 1.1,
+          UC: 1.05,
+          EXC: 1.02,
+          CLEARED: 1.0,
+          PLAYED: 0.5,
+        }[play.clear];
+        var grade_coef;
+        if (x >= 0.99) grade_coef = 1.05;
+        else if (x >= 0.98) grade_coef = 1.02;
+        else if (x >= 0.97) grade_coef = 1.0;
+        else if (x >= 0.95) grade_coef = 0.97;
+        else if (x >= 0.93) grade_coef = 0.94;
+        else if (x >= 0.9) grade_coef = 0.91;
+        // ?
+        else if (x >= 0.87) grade_coef = 0.88;
+        // ?
+        else if (x >= 0.75) grade_coef = 0.85;
+        // ?
+        else if (x >= 0.65) grade_coef = 0.82;
+        // ?
+        else grade_coef = 0.8; // ?
+        return play.level * 2 * x * grade_coef * clear_coef;
       }
-    })
 
-    vm.$watch('plays', _.debounce(function () { vm.save() }, 500), { deep: true })
+      var STORAGE_KEY = "data5";
+      var storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[{}]");
 
-    for (var play of storage) {
-      vm.add(play)
-    }
-    vm.plays = _.shuffle(vm.plays)
-    vm.plays = vm.sortedPlays
-    if (!vm.plays.length) { vm.add({}) }
+      var vm = new Vue({
+        el: "#root",
+        data: {
+          plays: [],
+          edit: true,
+        },
+        computed: {
+          total() {
+            return (
+              _.sumBy(this.sortedPlays.slice(0, 50), (p) =>
+                Math.floor(calc(p))
+              ) / 100
+            );
+          },
+          sortedPlays() {
+            return _.orderBy(
+              this.plays,
+              [
+                calc,
+                "level",
+                function (p) {
+                  var score = p.score;
+                  if (score > 0) {
+                    while (score * 10 <= 10000000) {
+                      score *= 10;
+                    }
+                  }
+                  return score;
+                },
+                (x) => (x.name ? x.name.toLowerCase() : ""),
+              ],
+              ["desc", "desc", "desc", "asc"]
+            );
+          },
+        },
+        methods: {
+          sort() {
+            this.plays = this.sortedPlays;
+          },
+          save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.plays));
+          },
+          add(play) {
+            this.plays.push({
+              name: play.name,
+              level: play.level,
+              score: play.score,
+              clear: play.clear,
+            });
+          },
+          grade(play) {
+            if (play.score == null) {
+              return "?";
+            }
+            var x = play.score;
+            while (x > 1) x /= 10;
+            if (x >= 0.99) return "S";
+            if (x >= 0.98) return "AAA+";
+            if (x >= 0.97) return "AAA";
+            if (x >= 0.95) return "AA+";
+            if (x >= 0.93) return "AA";
+            if (x >= 0.9) return "A+";
+            if (x >= 0.87) return "A";
+            if (x >= 0.8) return "B";
+            if (x >= 0.7) return "C";
+            return "D";
+          },
+          calc(p) {
+            return Math.floor(calc(p));
+          },
+          remove(play) {
+            this.plays.splice(this.plays.indexOf(play), 1);
+            if (this.plays.length === 0) this.add({});
+            this.save();
+          },
+          expand(score) {
+            if (score > 0) {
+              while (score * 10 <= 10000000) {
+                score *= 10;
+              }
+              return Math.round(score).toLocaleString();
+            }
+          },
+        },
+        watch: {
+          edit: function () {
+            this.sort();
+          },
+        },
+      });
 
+      vm.$watch(
+        "plays",
+        _.debounce(function () {
+          vm.save();
+        }, 500),
+        { deep: true }
+      );
+
+      for (var play of storage) {
+        vm.add(play);
+      }
+      vm.plays = _.shuffle(vm.plays);
+      vm.plays = vm.sortedPlays;
+      if (!vm.plays.length) {
+        vm.add({});
+      }
     </script>
   </body>
 </html>
